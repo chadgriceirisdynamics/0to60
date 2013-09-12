@@ -18,16 +18,35 @@
 }
 
 - (void)viewDidLoad {
-    
-    [_currentSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
-    [_maxSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
-    [_elapsedTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
-    [_toXTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
-    [_qtrTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
-    [_eightTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
+        // iPad-specific code
+        [_currentSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+        [_maxSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+        [_elapsedTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+        [_toXTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+        [_qtrTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+        [_eightTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:32]];
+
+    } else {
+        // iPhone-specific code
+        [_currentSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        [_maxSpeed setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        [_elapsedTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        [_toXTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        [_qtrTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        [_eightTime setFont:[UIFont fontWithName:@"Digital Dream Fat Narrow" size:17]];
+        
+    }
     
     [super viewDidLoad];
 	// Do any additional setup after loading the view, typically from a nib.
+    //stops phone from sleeping
+    [UIApplication sharedApplication].idleTimerDisabled = YES;
+    
+    //sets background image on start up to off
+    UIImage *img = [UIImage imageNamed:@"Blank_Tree_Off.png"];
+    [_backGroundImage setImage:img];
+
     
     locationManager = [[CLLocationManager alloc] init];
     locationManager.delegate = self;
@@ -35,9 +54,9 @@
     
     [locationManager startUpdatingLocation];
     
-    
-    
-    
+    //start up warning
+    UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"WARNING!" message:@"Write a warning here to tell people not to use this and kill themselves" delegate:self cancelButtonTitle:@"I Agree" otherButtonTitles:nil];
+    [alert show];
 
 }
 
@@ -46,6 +65,53 @@
     [super didReceiveMemoryWarning];
     // Dispose of any resources that can be recreated.
 }
+
+//background image changer
+- (void)backGroundImageChanger{
+    if (gpsArmed == 1) {
+        UIImage *img1 = [UIImage imageNamed:@"Blank_Tree_Pre.png"];
+        [_backGroundImage setImage:img1];
+        [self performSelector:@selector(bgImage2) withObject:nil afterDelay:1.5];
+    }
+    else{
+        UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"WARNING!" message:@"The GPS Accuracy is below the acceptable limit! Please try again" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alert show];
+        started = 0;
+    }
+}
+- (void)bgImage2{
+    if (speedCurrent == 0) {
+        UIImage *img2 = [UIImage imageNamed:@"Blank_Tree_Pre&Stage.png"];
+        [_backGroundImage setImage:img2];
+        [self performSelector:@selector(bgImage3) withObject:nil afterDelay:1.5];
+    }
+    else{
+        UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"WARNING!" message:@"You must be stoped to start test!" delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+        [alert show];
+        started = 0;
+    }
+}
+- (void)bgImage3{
+    UIImage *img3 = [UIImage imageNamed:@"Blank_Tree_Top.png"];
+    [_backGroundImage setImage:img3];
+    [self performSelector:@selector(bgImage4) withObject:nil afterDelay:.5];
+}
+- (void)bgImage4{
+    UIImage *img4 = [UIImage imageNamed:@"Blank_Tree_Middle.png"];
+    [_backGroundImage setImage:img4];
+    [self performSelector:@selector(bgImage5) withObject:nil afterDelay:.5];
+}
+- (void)bgImage5{
+    UIImage *img5 = [UIImage imageNamed:@"Blank_Tree_Bottom.png"];
+    [_backGroundImage setImage:img5];
+    [self performSelector:@selector(bgImage6) withObject:nil afterDelay:.5];
+}
+- (void)bgImage6{
+    UIImage *img6 = [UIImage imageNamed:@"Blank_Tree_Green.png"];
+    [_backGroundImage setImage:img6];
+    ready = 1;
+}
+
 
 #pragma mark - CLLocationManagerDelegate
 
@@ -68,6 +134,14 @@
     
     speedCurrent = [speedOutput intValue];
     currentspeed = [speedOutput doubleValue];
+    
+    // check gps for adequet accuracy
+    if (currentLocation.horizontalAccuracy < 20){
+        gpsArmed = 1;
+    }
+    else{
+        gpsArmed = 0;
+    }
     if (currentspeed > maxspeed){
         maxspeed = currentspeed;
     }
@@ -75,7 +149,7 @@
         
     }
     //starts timer void
-    if ((speedCurrent > 0) && (systemIsArmed == 1)){
+    if ((speedCurrent > 0) && (systemIsArmed == 1) && (ready == 1)){
         systemIsArmed = 2;
         [self startRun];
     }
@@ -126,21 +200,39 @@
     //stops things when data is collected and vehicle slows at least 5mph less than max speed
     if (maxspeed > (currentspeed + 5)) {
         [countUpTimer invalidate];
+        UIImage *img = [UIImage imageNamed:@"Blank_Tree_Red.png"];
+        [_backGroundImage setImage:img];
+        started = 0;
     }
 }
 
 
 - (IBAction)start:(id)sender {
-    mainInt = 0;
-    maxspeed = 0;
-    systemIsArmed = 1;
-    startPosition = 1;
-    eightArmed = 1;
-    qrtArmed = 1;
+    if (started == 0){
+        mainInt = 0;
+        maxspeed = 0;
+        systemIsArmed = 1;
+        startPosition = 1;
+        eightArmed = 1;
+        qrtArmed = 1;
+        started = 1;
+        ready = 0;
+        [self backGroundImageChanger];
+        self.elapsedTime.text = @"--.--";
+        self.toXTime.text = @"--.--";
+        self.eightTime.text = @"--.--";
+        self.qtrTime.text = @"--.--";
+    }
+    else{
+        
+    }
 }
 
 - (IBAction)stopTest:(id)sender {
     [countUpTimer invalidate];
+    UIImage *img = [UIImage imageNamed:@"Blank_Tree_Red.png"];
+    [_backGroundImage setImage:img];
+    started = 0;
    
 }
 

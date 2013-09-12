@@ -23,6 +23,9 @@ int systemIsArmed;
 int startPosition;
 int eightArmed;
 int qrtArmed;
+int gpsArmed;
+int started;
+int ready;
 double x1;
 double y11;
 double x2;
@@ -30,8 +33,10 @@ double y2;
 double distanceInFeet;
 
 
+
 @interface ViewController : UIViewController<CLLocationManagerDelegate>
 
+@property (strong, nonatomic) IBOutlet UIImageView *backGroundImage;
 
 @property (strong, nonatomic) IBOutlet UILabel *currentSpeed;
 
