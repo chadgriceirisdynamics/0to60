@@ -55,7 +55,7 @@
     [locationManager startUpdatingLocation];
     
     //start up warning
-    UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"WARNING!" message:@"Write a warning here to tell people not to use this and kill themselves" delegate:self cancelButtonTitle:@"I Agree" otherButtonTitles:nil];
+    UIAlertView* alert = [[UIAlertView alloc]initWithTitle:@"WARNING!" message:@"Use this application responsibly.  Only use this application on closed tracks while complying with all applicable safety regulations." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [alert show];
 
 }
